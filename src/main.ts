@@ -5,6 +5,8 @@ import { ConfigService } from '@nestjs/config';
 
 const configService = new ConfigService();
 
+console.log(configService.get<string>('RABBITMQ_URL'));
+
 async function bootstrap() {
   const app = await NestFactory.createMicroservice(AppModule, {
     transport: Transport.RMQ,
