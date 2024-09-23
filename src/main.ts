@@ -2,10 +2,9 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Transport } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
+import { formatInTimeZone } from 'date-fns-tz';
 
 const configService = new ConfigService();
-
-console.log(configService.get<string>('RABBITMQ_URL'));
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice(AppModule, {
@@ -18,6 +17,11 @@ async function bootstrap() {
       queue: 'ranking',
     },
   });
+
+  Date.prototype.toJSON = function (): any {
+    const timeZone = 'America/Sao_Paulo';
+    return formatInTimeZone(this, timeZone, 'yyyy-MM-dd HH:mm:ss.SSS');
+  };
 
   await app.listen();
 }

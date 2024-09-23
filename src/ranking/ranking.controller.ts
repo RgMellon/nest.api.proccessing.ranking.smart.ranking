@@ -1,7 +1,14 @@
 import { Controller, Logger } from '@nestjs/common';
-import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
+import {
+  Ctx,
+  EventPattern,
+  MessagePattern,
+  Payload,
+  RmqContext,
+} from '@nestjs/microservices';
 import { Match } from './interfaces/match.interface';
 import { RankingService } from './ranking.service';
+import { RankingResponse } from './interfaces/ranking-response.interface';
 
 @Controller('ranking')
 export class RankingController {
@@ -26,5 +33,28 @@ export class RankingController {
       return;
     }
     // console.log('Received match event:', match);
+  }
+
+  @MessagePattern('get-ranking')
+  async getRankings(
+    @Payload() data: any,
+    @Ctx() ctx: RmqContext,
+  ): Promise<RankingResponse | RankingResponse[]> {
+    const channel = ctx.getChannelRef();
+    const originalMessage = ctx.getMessage();
+
+    try {
+      this.logger.log(`data ${JSON.stringify(data)}`);
+      const { category, dateRef } = data;
+
+      const ranking = await this.rankingService.getRanking(category, dateRef);
+      await channel.ack(originalMessage);
+
+      return ranking;
+    } catch (err) {
+      this.logger.error(`Error getting ranking: ${err.message}`);
+      channel.ack(originalMessage);
+    }
+    // console.log('Received get-ranking message:', data);
   }
 }

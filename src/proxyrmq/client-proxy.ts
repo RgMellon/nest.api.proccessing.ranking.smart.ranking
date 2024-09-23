@@ -21,4 +21,16 @@ export class ClientProxySmartRanking {
       },
     });
   }
+
+  getClientProxyChallengeInstance(): ClientProxy {
+    return ClientProxyFactory.create({
+      transport: Transport.RMQ,
+      options: {
+        urls: [
+          `amqp://${this.configService.get<string>('RABBITMQ_USER')}:${this.configService.get<string>('RABBITMQ_PASSWORD')}@${this.configService.get<string>('RABBITMQ_URL')}/${this.configService.get<string>('RABBITMQ_PROJECT_NAME')}`,
+        ],
+        queue: 'challenges',
+      },
+    });
+  }
 }
